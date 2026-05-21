@@ -15,7 +15,7 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        // 1. Funciones matemáticas difusas (Corregidas y robustas a los extremos)
+        // 1. Funciones matemáticas difusas (Robustas a los extremos)
         const trapmf = (x, a, b, c, d) => {
             if (x <= a || x >= d) return 0;
             if (x >= b && x <= c) return 1;
@@ -99,7 +99,7 @@
                 setResultado({ riesgo: riesgoFinal.toFixed(1), etiqueta, color, strokeColor });
             }, [acoplamiento, complejidad, distancia]);
 
-            // Cálculo para el arco del medidor (Usando PATH SVG)
+            // Cálculo para el arco del medidor
             const arcLength = Math.PI * 90; 
             const strokeDashoffset = arcLength - ((resultado.riesgo / 100) * arcLength);
 
@@ -108,9 +108,12 @@
                     <div className="w-full max-w-2xl bg-white/5 backdrop-blur-2xl border border-white/10 p-10 rounded-[2.5rem] shadow-2xl">
                         
                         <div className="flex flex-col items-center mb-10 relative">
-                            <div className="relative w-64 h-36 overflow-hidden flex justify-center">
-                                <svg className="w-full h-full" viewBox="0 0 200 100">
-                                    <path d="M 10 100 A 90 90 0 0 1 190 100" fill="none" stroke="#374151" strokeWidth="16" />
+                            <div className="relative w-64 h-40 overflow-visible flex justify-center">
+                                {/* viewBox con padding de seguridad (-10 a 220) para evitar cortes en las orillas */}
+                                <svg className="w-full h-full drop-shadow-md" viewBox="-10 -10 220 120">
+                                    {/* Arco de fondo gris */}
+                                    <path d="M 10 100 A 90 90 0 0 1 190 100" fill="none" stroke="#374151" strokeWidth="16" strokeLinecap="round" />
+                                    {/* Arco dinámico de color */}
                                     <path 
                                         d="M 10 100 A 90 90 0 0 1 190 100" 
                                         fill="none" 
@@ -118,11 +121,11 @@
                                         strokeWidth="16" 
                                         strokeDasharray={arcLength} 
                                         strokeDashoffset={strokeDashoffset}
-                                        className="transition-all duration-500 ease-out" 
+                                        className="transition-all duration-700 ease-out" 
                                         strokeLinecap="round"
                                     />
                                 </svg>
-                                <div className="absolute bottom-0 left-0 right-0 text-center flex flex-col items-center">
+                                <div className="absolute bottom-2 left-0 right-0 text-center flex flex-col items-center">
                                     <span className="text-5xl font-bold tracking-tight">{resultado.riesgo}%</span>
                                     <span className={`text-sm font-semibold tracking-widest mt-1 ${resultado.color}`}>
                                         {resultado.etiqueta}
