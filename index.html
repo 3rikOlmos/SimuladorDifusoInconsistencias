@@ -15,9 +15,20 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        // 1. Funciones matemáticas difusas
-        const trapmf = (x, a, b, c, d) => Math.max(0, Math.min((x - a) / (b - a || 1e-5), 1, (d - x) / (d - c || 1e-5)));
-        const trimf = (x, a, b, c) => Math.max(0, Math.min((x - a) / (b - a || 1e-5), (c - x) / (c - b || 1e-5)));
+        // 1. Funciones matemáticas difusas (Corregidas y robustas a los extremos)
+        const trapmf = (x, a, b, c, d) => {
+            if (x <= a || x >= d) return 0;
+            if (x >= b && x <= c) return 1;
+            if (x < b) return (x - a) / (b - a);
+            return (d - x) / (d - c);
+        };
+
+        const trimf = (x, a, b, c) => {
+            if (x <= a || x >= c) return 0;
+            if (x === b) return 1;
+            if (x < b) return (x - a) / (b - a);
+            return (c - x) / (c - b);
+        };
 
         // 2. Componente del Deslizador
         function ControlSlider({ label, value, setValue, min, max, step }) {
@@ -88,22 +99,27 @@
                 setResultado({ riesgo: riesgoFinal.toFixed(1), etiqueta, color, strokeColor });
             }, [acoplamiento, complejidad, distancia]);
 
-            const radius = 90;
-            const circumference = 2 * Math.PI * radius;
-            const strokeDashoffset = circumference - ((resultado.riesgo / 100) * circumference) / 2;
+            // Cálculo para el arco del medidor (Usando PATH SVG)
+            const arcLength = Math.PI * 90; 
+            const strokeDashoffset = arcLength - ((resultado.riesgo / 100) * arcLength);
 
             return (
                 <div className="min-h-screen flex items-center justify-center p-6">
                     <div className="w-full max-w-2xl bg-white/5 backdrop-blur-2xl border border-white/10 p-10 rounded-[2.5rem] shadow-2xl">
                         
                         <div className="flex flex-col items-center mb-10 relative">
-                            <div className="relative w-64 h-36 overflow-hidden">
-                                <svg className="w-full h-full transform -rotate-180 origin-center" viewBox="0 0 200 100">
-                                    <circle cx="100" cy="100" r={radius} fill="none" stroke="#374151" strokeWidth="16" />
-                                    <circle
-                                        cx="100" cy="100" r={radius} fill="none" stroke={resultado.strokeColor}
-                                        strokeWidth="16" strokeDasharray={circumference} strokeDashoffset={strokeDashoffset}
-                                        className="transition-all duration-500 ease-out" strokeLinecap="round"
+                            <div className="relative w-64 h-36 overflow-hidden flex justify-center">
+                                <svg className="w-full h-full" viewBox="0 0 200 100">
+                                    <path d="M 10 100 A 90 90 0 0 1 190 100" fill="none" stroke="#374151" strokeWidth="16" />
+                                    <path 
+                                        d="M 10 100 A 90 90 0 0 1 190 100" 
+                                        fill="none" 
+                                        stroke={resultado.strokeColor}
+                                        strokeWidth="16" 
+                                        strokeDasharray={arcLength} 
+                                        strokeDashoffset={strokeDashoffset}
+                                        className="transition-all duration-500 ease-out" 
+                                        strokeLinecap="round"
                                     />
                                 </svg>
                                 <div className="absolute bottom-0 left-0 right-0 text-center flex flex-col items-center">
@@ -127,7 +143,6 @@
             );
         }
 
-        // 4. Renderizado de la aplicación
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<FuzzyEmulator />);
     </script>
